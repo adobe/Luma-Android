@@ -36,6 +36,7 @@ fun LoginSheet(onDismiss: () -> Unit) {
     LaunchedEffect(Unit) {
         disableLogin =
             MobileSDK.shared.currentEmailId.value != "testUser@gmail.com" && MobileSDK.shared.currentEmailId.value.isValidEmail()
+
         // Send track screen event
 
     }

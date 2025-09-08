@@ -59,6 +59,7 @@ fun DisclaimerView(navController: NavController) {
         // Add consent based on authorization
         if (status) {
             showPersonalizationWarning = false
+
             // Set consent to yes
             MobileSDK.shared.updateTrackingStatus(TrackingStatus.AUTHORIZED)
             MobileSDK.shared.updateConsent("y")
@@ -69,6 +70,7 @@ fun DisclaimerView(navController: NavController) {
                 Toast.LENGTH_LONG
             ).show()
             showPersonalizationWarning = true
+
             // Set consent to no
             MobileSDK.shared.updateTrackingStatus(TrackingStatus.DENIED)
             MobileSDK.shared.updateConsent("n")

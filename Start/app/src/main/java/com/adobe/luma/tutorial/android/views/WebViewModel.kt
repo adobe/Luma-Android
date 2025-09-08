@@ -40,7 +40,7 @@ class WebViewModel : ViewModel() {
             var urlVariables: String
 
             // Handle web view
-            
+
         } catch (e: Exception) {
             MobileSDK.shared.logInfo("TermsOfServiceSheet - loadUrl: Error with WebView: ${e.localizedMessage}")
         }

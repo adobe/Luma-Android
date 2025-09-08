@@ -38,6 +38,7 @@ import com.adobe.luma.tutorial.android.models.MobileSDK
 import com.adobe.luma.tutorial.android.utils.Network
 import com.adobe.marketing.mobile.places.PlacesPOI
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.Circle
@@ -63,6 +64,7 @@ fun LocationView() {
     var shouldShowBeaconDetails by remember { mutableStateOf(false) }
     var selectedLocation: Location? = null
     var region: Geofence?
+    var regionIdentifier = ""
 
     LaunchedEffect(locationManager.pointsOfInterest.size, locationManager.beacons.value?.size) {
         locationManager.startScanning()
@@ -173,24 +175,24 @@ fun LocationView() {
                 )
 
 
-                Section(
-                    title = { Text("Beacons") },
-                    content = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { shouldShowBeacons = true }
-                                .padding(16.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_sensor_tag_radiowaves_forward_fill),
-                                contentDescription = null
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Use and/or Simulate Beacons")
-                        }
-                    }
-                )
+//                Section(
+//                    title = { Text("Beacons") },
+//                    content = {
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .clickable { shouldShowBeacons = true }
+//                                .padding(16.dp)
+//                        ) {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.ic_sensor_tag_radiowaves_forward_fill),
+//                                contentDescription = null
+//                            )
+//                            Spacer(modifier = Modifier.width(8.dp))
+//                            Text("Use and/or Simulate Beacons")
+//                        }
+//                    }
+//                )
 
                 if (shouldShowGeofenceDialog) {
                     Dialog(onDismissRequest = {
@@ -235,17 +237,12 @@ fun LocationView() {
                                 Column(
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 ) {
-                                    region =
-                                        Geofence.Builder()
-                                            .setRequestId("geofence")
-                                            .setCircularRegion(it.latitude, it.longitude, 100f)
-                                            .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                                            .build()
 
                                     for (poi in pois) {
                                         Spacer(modifier = Modifier.height(8.dp))
                                         poi.identifier?.let {
                                             ListItem("Id", poi.identifier ?: "")
+                                            regionIdentifier = poi.identifier
                                         }
 
                                         ListItem(
@@ -284,6 +281,13 @@ fun LocationView() {
                                             )
                                         }
                                     }
+
+                                    region =
+                                        Geofence.Builder()
+                                            .setRequestId(regionIdentifier)
+                                            .setCircularRegion(it.latitude, it.longitude, 100f)
+                                            .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                                            .build()
 
                                     Spacer(modifier = Modifier.weight(1f))
                                     Row {

@@ -13,12 +13,14 @@ package com.adobe.luma.tutorial.android.models
 
 import android.content.Context
 import android.location.Location
+import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.adobe.luma.tutorial.android.utils.Network
+import com.adobe.luma.tutorial.android.views.LocationManager
 import com.adobe.luma.tutorial.android.views.TrackingStatus
 import com.adobe.luma.tutorial.android.xdm.Application
 import com.adobe.luma.tutorial.android.xdm.TestPushPayload
@@ -32,16 +34,21 @@ import com.adobe.marketing.mobile.edge.identity.AuthenticatedState
 import com.adobe.marketing.mobile.edge.identity.Identity
 import com.adobe.marketing.mobile.edge.identity.IdentityItem
 import com.adobe.marketing.mobile.edge.identity.IdentityMap
+import com.adobe.marketing.mobile.optimize.AEPOptimizeError
+import com.adobe.marketing.mobile.optimize.AdobeCallbackWithOptimizeError
 import com.adobe.marketing.mobile.optimize.DecisionScope
 import com.adobe.marketing.mobile.optimize.Optimize
+import com.adobe.marketing.mobile.optimize.OptimizeProposition
 import com.adobe.marketing.mobile.places.PlacesPOI
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
+
 
 class MobileSDK : ViewModel() {
 
@@ -222,7 +229,9 @@ class MobileSDK : ViewModel() {
     }
 
     suspend fun sendTestPushEvent(applicationId: String, eventType: String) {
+        // Create payload and send experience event
         val testPushPayload = TestPushPayload(
+
             Application(applicationId),
             eventType
         )
@@ -245,17 +254,29 @@ class MobileSDK : ViewModel() {
     }
 
     fun sendTrackAction(action: String, data: Map<String, String>?) {
+        // Send trackAction Event
         MobileCore.trackAction(action, data)
     }
 
     suspend fun updatePropositionsAT(ecid: String, location: String) {
+        // set up the XDM dictionary, define decision scope and call update proposition API
         withContext(Dispatchers.IO) {
             val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
             val identityMap = mapOf("identityMap" to ecidMap)
             val xdmData = mapOf("xdm" to identityMap)
             val decisionScope = DecisionScope(location)
             Optimize.clearCachedPropositions()
-            Optimize.updatePropositions(listOf(decisionScope), null, xdmData)
+            Optimize.updatePropositions(listOf(decisionScope), xdmData, null, object :
+                    AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
+                    override fun fail(optimizeError: AEPOptimizeError?) {
+                        val responseError = optimizeError
+                        Log.i("MobileSDK", "updatePropositionsAT error: ${responseError}")
+                    }
+                    override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
+                        val responseMap = propositionsMap
+                        Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
+                    }
+                })
         }
     }
 
@@ -265,13 +286,24 @@ class MobileSDK : ViewModel() {
         placementId: String,
         itemCount: Int
     ) {
+        // set up the XDM dictionary, define decision scope and call update proposition API
         withContext(Dispatchers.IO) {
             val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
             val identityMap = mapOf("identityMap" to ecidMap)
             val xdmData = mapOf("xdm" to identityMap)
             val decisionScope = DecisionScope(activityId, placementId, itemCount)
             Optimize.clearCachedPropositions()
-            Optimize.updatePropositions(listOf(decisionScope), null, xdmData)
+            Optimize.updatePropositions(listOf(decisionScope), xdmData, null, object :
+                AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
+                override fun fail(optimizeError: AEPOptimizeError?) {
+                    val responseError = optimizeError
+                    Log.i("MobileSDK", "updatePropositionsOD error: ${responseError}")
+                }
+                override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
+                    val responseMap = propositionsMap
+                    Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
+                }
+            })
         }
     }
 

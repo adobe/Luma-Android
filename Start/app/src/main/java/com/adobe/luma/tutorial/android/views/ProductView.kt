@@ -159,7 +159,9 @@ fun ProductView(productId: String, navController: NavController) {
                             scope.launch {
                                 // Send purchase commerce experience event
 
+
                                 // Update attributes
+
 
                             }
                         }
@@ -194,13 +196,17 @@ fun ProductView(productId: String, navController: NavController) {
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Light,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.align(Alignment.Start)
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = product.description,
                     fontSize = 16.sp,
-                    modifier = Modifier.align(Alignment.Start)
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(

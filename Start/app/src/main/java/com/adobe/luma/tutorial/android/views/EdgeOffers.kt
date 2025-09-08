@@ -70,16 +70,7 @@ fun EdgeOffersView(decision: Decision, navController: NavController) {
     val scope = rememberCoroutineScope()
 
     // recompose the view when the number of received offers changes
-    LaunchedEffect(offersOD.count()) {
-        updatePropositionsOD(
-            currentEcid,
-            decision.activityId,
-            decision.placementId,
-            decision.itemCount
-        )
-        offersOD =
-            onPropositionsUpdateOD(decision.activityId, decision.placementId, decision.itemCount)
-    }
+
 
     Text(
         text = "Decision: ${decision.name}".toUpperCase(Locale.current),
@@ -223,7 +214,7 @@ fun onPropositionsUpdateOD(
     val offersOD = arrayListOf<OfferItem>()
     val decisionScope = DecisionScope(activityId, placementId, itemCount)
     val latch = CountDownLatch(1)
-    Optimize.getPropositions(listOf(decisionScope)) { propositions ->
+    Optimize.onPropositionsUpdate { propositions ->
         propositions[decisionScope]?.let { optimizeProposition ->
             for (offer in optimizeProposition.offers) {
                 val contentJson = JSONObject(offer.content)
@@ -241,6 +232,6 @@ fun onPropositionsUpdateOD(
         }
         latch.countDown()
     }
-    latch.await(1000, TimeUnit.MILLISECONDS)
+    latch.await(2000, TimeUnit.MILLISECONDS)
     return offersOD
 }

@@ -36,6 +36,7 @@ fun LoginSheet(onDismiss: () -> Unit) {
     LaunchedEffect(Unit) {
         disableLogin =
             MobileSDK.shared.currentEmailId.value != "testUser@gmail.com" && MobileSDK.shared.currentEmailId.value.isValidEmail()
+
         // Send track screen event
         MobileSDK.shared.sendTrackScreenEvent("luma: content: android: us: en: login")
     }
@@ -122,6 +123,7 @@ fun LoginSheet(onDismiss: () -> Unit) {
                             )
                             // Send app interaction event
                             MobileSDK.shared.sendAppInteractionEvent("login")
+
                             onDismiss()
                         },
                         enabled = MobileSDK.shared.currentEmailId.value.isValidEmail()

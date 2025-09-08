@@ -36,6 +36,7 @@ import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.Identity
 import com.adobe.marketing.mobile.optimize.Optimize
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.FirebaseApp
 
 
 class LumaApplication : Application() {
@@ -43,6 +44,7 @@ class LumaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
 
         MobileCore.setLogLevel(LoggingMode.ERROR)
         MobileCore.setApplication(this)
@@ -92,8 +94,10 @@ class LumaApplication : Application() {
                 // Get new FCM registration token
                 val token = task.result
                 Log.i("Luma", "Android Firebase token :: $token")
-                // register push notification
+
+                // Send push token to Mobile SDK
                 MobileCore.setPushIdentifier(token)
+
                 // Store the push token
                 MobileSDK.shared.deviceToken.value = token
             }
@@ -104,7 +108,7 @@ class LumaApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Luma Channel"
             val descriptionText = "Luma Notification Channel"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel("LUMA_CHANNEL_ID", name, importance).apply {
                 description = descriptionText
             }
@@ -150,13 +154,13 @@ class LumaApplication : Application() {
         override fun onActivityResumed(activity: Activity) {
             Log.i("Luma", "onActivityResumed: " + activity.localClassName)
             // When in foreground start lifecycle data collection
-
+            MobileCore.lifecycleStart(null)
         }
 
         override fun onActivityPaused(activity: Activity) {
             Log.i("Luma", "onActivityPaused: " + activity.localClassName)
             // When in background pause lifecycle data collection
-
+            MobileCore.lifecyclePause()
         }
 
         override fun onActivityStopped(activity: Activity) {

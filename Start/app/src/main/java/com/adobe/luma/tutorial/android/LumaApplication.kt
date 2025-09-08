@@ -36,21 +36,31 @@ import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.Identity
 import com.adobe.marketing.mobile.optimize.Optimize
 import com.google.firebase.messaging.FirebaseMessaging
-import androidx.core.net.toUri
+import com.google.firebase.FirebaseApp
 
 
 class LumaApplication : Application() {
-    private var environmentFileId = "YOUR_ENVIRONMENT_ID_GOES_HERE"
+    private var environmentFileId = "b5cbd1a1220e/1857ef6cacb5/launch-2594f26b23cd-development"
 
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
 
         MobileCore.setLogLevel(LoggingMode.ERROR)
         MobileCore.setApplication(this)
 
         // Define extensions
 
+
+
         // Register extensions
+        MobileCore.registerExtensions(extensions) {
+            // Use the environment file id assigned to this application via Adobe Experience Platform Data Collection
+            Log.i("Luma", "Using mobile config: $environmentFileId")
+            MobileCore.configureWithAppID(environmentFileId)
+
+        // Register extensions
+
 
         // only start lifecycle if the application is not in the background
         // see LumaActivityLifecycleCallbacks.onActivityResumed
@@ -69,8 +79,12 @@ class LumaApplication : Application() {
                 // Get new FCM registration token
                 val token = task.result
                 Log.i("Luma", "Android Firebase token :: $token")
-                // register push notification
+
+                // Send push token to Mobile SDK
+
                 MobileCore.setPushIdentifier(token)
+
+
                 // Store the push token
                 MobileSDK.shared.deviceToken.value = token
             }
@@ -121,13 +135,13 @@ class LumaApplication : Application() {
         override fun onActivityResumed(activity: Activity) {
             Log.i("Luma", "onActivityResumed: " + activity.localClassName)
             // When in foreground start lifecycle data collection
-            MobileCore.lifecycleStart(null)
+
         }
 
         override fun onActivityPaused(activity: Activity) {
             Log.i("Luma", "onActivityPaused: " + activity.localClassName)
             // When in background pause lifecycle data collection
-            MobileCore.lifecyclePause()
+
         }
 
         override fun onActivityStopped(activity: Activity) {

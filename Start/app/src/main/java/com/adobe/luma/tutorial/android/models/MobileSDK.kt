@@ -1,25 +1,26 @@
 /*
-Copyright 2025 Adobe. All rights reserved.
-This file is licensed to you under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License. You may obtain a copy
-of the License at http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software distributed under
-the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
-OF ANY KIND, either express or implied. See the License for the specific language
-governing permissions and limitations under the License.
+  Copyright 2025 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
 */
 
 package com.adobe.luma.tutorial.android.models
 
 import android.content.Context
 import android.location.Location
+import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.adobe.luma.tutorial.android.utils.Network
+import com.adobe.luma.tutorial.android.views.LocationManager
 import com.adobe.luma.tutorial.android.views.TrackingStatus
 import com.adobe.luma.tutorial.android.xdm.Application
 import com.adobe.luma.tutorial.android.xdm.TestPushPayload
@@ -33,16 +34,21 @@ import com.adobe.marketing.mobile.edge.identity.AuthenticatedState
 import com.adobe.marketing.mobile.edge.identity.Identity
 import com.adobe.marketing.mobile.edge.identity.IdentityItem
 import com.adobe.marketing.mobile.edge.identity.IdentityMap
+import com.adobe.marketing.mobile.optimize.AEPOptimizeError
+import com.adobe.marketing.mobile.optimize.AdobeCallbackWithOptimizeError
 import com.adobe.marketing.mobile.optimize.DecisionScope
 import com.adobe.marketing.mobile.optimize.Optimize
+import com.adobe.marketing.mobile.optimize.OptimizeProposition
 import com.adobe.marketing.mobile.places.PlacesPOI
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
+
 
 class MobileSDK : ViewModel() {
 
@@ -167,11 +173,12 @@ class MobileSDK : ViewModel() {
     }
 
     suspend fun sendTestPushEvent(applicationId: String, eventType: String) {
-        val testPushPayload = TestPushPayload(
-            Application(applicationId),
-            eventType
-        )
-        sendExperienceEvent(testPushPayload.asMap())
+
+        // Create paylod and send experience event
+
+        // Create payload and send experience event
+
+
     }
 
     private suspend fun sendExperienceEvent(xdm: Map<String, Any>) {
@@ -190,18 +197,17 @@ class MobileSDK : ViewModel() {
     }
 
     fun sendTrackAction(action: String, data: Map<String, String>?) {
-        MobileCore.trackAction(action, data)
+
+        // Send trackAction event
+
+        // Send trackAction Event
+
+
     }
 
     suspend fun updatePropositionsAT(ecid: String, location: String) {
-        withContext(Dispatchers.IO) {
-            val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
-            val identityMap = mapOf("identityMap" to ecidMap)
-            val xdmData = mapOf("xdm" to identityMap)
-            val decisionScope = DecisionScope(location)
-            Optimize.clearCachedPropositions()
-            Optimize.updatePropositions(listOf(decisionScope), null, xdmData)
-        }
+        // set up the XDM dictionary, define decision scope and call update proposition API
+
     }
 
     suspend fun updatePropositionsOD(
@@ -210,20 +216,15 @@ class MobileSDK : ViewModel() {
         placementId: String,
         itemCount: Int
     ) {
-        withContext(Dispatchers.IO) {
-            val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
-            val identityMap = mapOf("identityMap" to ecidMap)
-            val xdmData = mapOf("xdm" to identityMap)
-            val decisionScope = DecisionScope(activityId, placementId, itemCount)
-            Optimize.clearCachedPropositions()
-            Optimize.updatePropositions(listOf(decisionScope), null, xdmData)
-        }
+        // set up the XDM dictionary, define decision scope and call update proposition API
+
     }
 
     suspend fun processGeofence(geofence: Geofence?, transitionType: Int) {
         withContext(Dispatchers.IO) {
             geofence?.let {
                 // Process geolocation event
+
 
             }
         }
