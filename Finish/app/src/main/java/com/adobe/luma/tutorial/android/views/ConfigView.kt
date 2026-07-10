@@ -422,7 +422,7 @@ fun TestSection(
             Text("In-App Message")
         }
         Button(onClick = onPushNotificationClick) {
-            Text("Push Notification")
+            Text(" Push Notification")
         }
     }
 }

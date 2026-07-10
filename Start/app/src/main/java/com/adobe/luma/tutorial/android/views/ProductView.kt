@@ -74,7 +74,7 @@ fun ProductView(productId: String, navController: NavController) {
 
     LaunchedEffect(Unit) {
         // Send productViews commerce experience event
-        MobileSDK.shared.sendCommerceExperienceEvent("productViews", product)
+
     }
 
     Scaffold(
@@ -130,10 +130,7 @@ fun ProductView(productId: String, navController: NavController) {
                         if (MobileSDK.shared.trackingEnabled == TrackingStatus.AUTHORIZED) {
                             scope.launch {
                                 // Send saveForLater commerce experience event
-                                MobileSDK.shared.sendCommerceExperienceEvent(
-                                    "saveForLaters",
-                                    product
-                                )
+
                             }
                         }
                         showSaveForLaterDialog = true
@@ -147,10 +144,7 @@ fun ProductView(productId: String, navController: NavController) {
                         if (MobileSDK.shared.trackingEnabled == TrackingStatus.AUTHORIZED) {
                             scope.launch {
                                 // Send productListAdds commerce experience event
-                                MobileSDK.shared.sendCommerceExperienceEvent(
-                                    "productListAdds",
-                                    product
-                                )
+
                             }
                         }
                         showAddToCartDialog = true
@@ -164,10 +158,10 @@ fun ProductView(productId: String, navController: NavController) {
                         if (MobileSDK.shared.trackingEnabled == TrackingStatus.AUTHORIZED) {
                             scope.launch {
                                 // Send purchase commerce experience event
-                                MobileSDK.shared.sendCommerceExperienceEvent("purchases", product)
+
 
                                 // Update attributes
-                                MobileSDK.shared.updateUserAttribute("isPaidUser", "yes")
+
 
                             }
                         }

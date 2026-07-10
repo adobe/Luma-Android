@@ -40,21 +40,7 @@ class WebViewModel : ViewModel() {
             var urlVariables: String
 
             // Handle web view
-            Identity.getUrlVariables {
-                urlVariables = it
-                val baseUrl = getHtmlFileUrl("tou.html")
 
-                val finalUrl = if (urlVariables.isNotEmpty()) {
-                    "$baseUrl?$urlVariables"
-                } else {
-                    baseUrl
-                }
-
-                Handler(Looper.getMainLooper()).post {
-                    webView.loadUrl(finalUrl)
-                }
-                MobileSDK.shared.logInfo("TermsOfServiceSheet - loadUrl: Successfully loaded WebView with URL: $finalUrl")
-            }
         } catch (e: Exception) {
             MobileSDK.shared.logInfo("TermsOfServiceSheet - loadUrl: Error with WebView: ${e.localizedMessage}")
         }
