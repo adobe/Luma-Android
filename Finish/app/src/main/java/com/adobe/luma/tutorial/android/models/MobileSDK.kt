@@ -26,8 +26,10 @@ import com.adobe.luma.tutorial.android.xdm.Application
 import com.adobe.luma.tutorial.android.xdm.TestPushPayload
 import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.ExperienceEvent
+import com.adobe.marketing.mobile.Messaging
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Places
+import com.adobe.marketing.mobile.messaging.Surface
 import com.adobe.marketing.mobile.UserProfile
 import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.AuthenticatedState
@@ -60,6 +62,7 @@ class MobileSDK : ViewModel() {
     var sandbox = mutableStateOf("")
     var showProducts = mutableStateOf(true)
     var showPersonalisation = mutableStateOf(true)
+    var showDecisioning = mutableStateOf(false)
     var showGeofences = mutableStateOf(true)
     var showBeacons = mutableStateOf(true)
     var testPushEventType = mutableStateOf("application.test")
@@ -70,6 +73,7 @@ class MobileSDK : ViewModel() {
     var productsSystemImage = mutableStateOf("cart")
     var currency = mutableStateOf("$")
     var targetLocation = mutableStateOf("")
+    var decisioningSurface = mutableStateOf("")
     var ldap = mutableStateOf("")
     var emailDomain = mutableStateOf("adobetest.com")
     var tms = mutableStateOf("")
@@ -91,6 +95,7 @@ class MobileSDK : ViewModel() {
             sandbox.value = general.config.sandbox
             showProducts.value = general.config.showProducts
             showPersonalisation.value = general.config.showPersonalisation
+            showDecisioning.value = general.config.showDecisioning
             showBeacons.value = general.config.showBeacons
             showGeofences.value = general.config.showGeofences
             brandName.value = general.customer.name
@@ -100,6 +105,7 @@ class MobileSDK : ViewModel() {
             currency.value = general.customer.currency
             testPushEventType.value = general.testPush.eventType
             targetLocation.value = general.target.location
+            decisioningSurface.value = general.decisioning.surface
             ldap.value = general.config.ldap
             emailDomain.value = general.config.emailDomain ?: "adobetest.com"
             tms.value = general.config.tms
@@ -303,6 +309,18 @@ class MobileSDK : ViewModel() {
                     Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
                 }
             })
+        }
+    }
+
+    suspend fun updatePropositionsForSurfaces(surfaces: List<Surface>) {
+        // Ask the Messaging extension to fetch propositions for the given decisioning surfaces
+        withContext(Dispatchers.IO) {
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Updating ${surfaces.size} surface(s)")
+            surfaces.forEach { surface ->
+                Log.i("MobileSDK", "updatePropositionsForSurfaces: Surface URI: ${surface.uri}")
+            }
+            Messaging.updatePropositionsForSurfaces(surfaces)
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Update triggered successfully")
         }
     }
 

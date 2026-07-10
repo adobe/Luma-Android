@@ -15,12 +15,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -41,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.intl.Locale
@@ -49,7 +45,7 @@ import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
 import com.adobe.luma.tutorial.android.R
 import com.adobe.luma.tutorial.android.models.ContentItem
 import com.adobe.luma.tutorial.android.models.Decision
@@ -95,8 +91,7 @@ fun EdgeOffersView(decision: Decision, navController: NavController) {
             Color.Transparent
         ),
         modifier = Modifier
-            .height(350.dp)
-            .width(350.dp)
+            .fillMaxWidth()
             .padding(horizontal = 20.dp)
     ) {
         Column {
@@ -106,7 +101,8 @@ fun EdgeOffersView(decision: Decision, navController: NavController) {
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .height(350.dp)
                         .clip(MaterialTheme.shapes.medium)
                         .clickable(enabled = true) {
                             offersOD = emptyList()
@@ -126,17 +122,17 @@ fun EdgeOffersView(decision: Decision, navController: NavController) {
                         }
                 )
             } else {
-                LazyColumn {
-                    items(offersOD) { offerItem ->
+                Column {
+                    offersOD.forEach { offerItem ->
                         Column(modifier = Modifier.clickable(enabled = true) {
                             showInfoSheet = true
                         }) {
-                            val painter: Painter =
-                                rememberAsyncImagePainter(offerItem.content.image)
-                            Image(
-                                painter = painter,
+                            AsyncImage(
+                                model = offerItem.content.image,
                                 contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
                                 modifier = Modifier
+                                    .fillMaxWidth()
                                     .clip(MaterialTheme.shapes.medium)
                             )
                             Text(

@@ -3,7 +3,8 @@
     "tenant": "_techmarketingdemos",
     "sandbox": "mobile-and-web-sdk-courses",
     "showProducts": true,
-    "showPersonalisation": true,
+    "showPersonalisation": false,
+    "showDecisioning": true,
     "showGeofences": true,
     "showBeacons": false,
     "ldap": "testUser",
@@ -23,6 +24,9 @@
   },
   "target": {
     "location": "luma-mobileapp-abtest"
+  },
+  "decisioning": {
+    "surface": "offersLocation"
   },
   "map": {
     "latitude": 52.37109,

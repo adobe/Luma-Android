@@ -33,6 +33,8 @@ fun BottomNavigationBar(setSelectedView: (String) -> Unit) {
     var showBeacons by remember { mutableStateOf(false) }
     var showProducts by remember { mutableStateOf(false) }
     var showPersonalisation by remember { mutableStateOf(false) }
+    // Reactive read: recomposes once the configuration is loaded into the shared SDK state
+    val showDecisioning = MobileSDK.shared.showDecisioning.value
 
     LaunchedEffect(Unit) {
         if (MobileSDK.shared.trackingEnabled == TrackingStatus.AUTHORIZED) {
@@ -71,10 +73,24 @@ fun BottomNavigationBar(setSelectedView: (String) -> Unit) {
                     selectedContentColor = Color.Blue
                 )
             }
-            if (showPersonalisation) {
+            if (showPersonalisation && !showDecisioning) {
                 BottomNavigationItem(
                     selected = false,
                     onClick = { setSelectedView("Personalisation") },
+                    label = { Text("Personalisation", fontSize = 8.sp) },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.ic_personalization),
+                            contentDescription = null
+                        )
+                    },
+                    selectedContentColor = Color.Blue
+                )
+            }
+            if (showPersonalisation && showDecisioning) {
+                BottomNavigationItem(
+                    selected = false,
+                    onClick = { setSelectedView("Decisioning") },
                     label = { Text("Personalisation", fontSize = 8.sp) },
                     icon = {
                         Icon(
