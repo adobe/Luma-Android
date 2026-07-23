@@ -81,6 +81,10 @@ fun ContentView(navController: NavController) {
                         EdgePersonalisationView(navController)
                     }
 
+                    "Decisioning" -> {
+                        EdgeDecisioningView(navController)
+                    }
+
                     "Location" -> {
                         LocationView()
                     }

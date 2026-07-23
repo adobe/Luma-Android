@@ -18,6 +18,7 @@ data class General(
     @SerializedName("customer") val customer: Customer,
     @SerializedName("testPush") val testPush: TestPush,
     @SerializedName("target") val target: Target,
+    @SerializedName("decisioning") val decisioning: Decisioning,
     @SerializedName("map") val map: AppMap
 ) {
     companion object {
@@ -27,6 +28,7 @@ data class General(
                 sandbox = "",
                 showProducts = true,
                 showPersonalisation = true,
+                showDecisioning = false,
                 showGeofences = true,
                 showBeacons = true,
                 ldap = "",
@@ -36,8 +38,8 @@ data class General(
             customer = Customer(
                 name = "",
                 logo = "",
-                productsType = "",
-                productsSystemImage = "",
+                productsType = "Products",
+                productsSystemImage = "cart",
                 currency = "$"
             ),
             testPush = TestPush(
@@ -46,6 +48,9 @@ data class General(
             ),
             target = Target(
                 location = ""
+            ),
+            decisioning = Decisioning(
+                surface = ""
             ),
             map = AppMap(
                 longitude = 0.0,
@@ -61,6 +66,7 @@ data class Config(
     @SerializedName("sandbox") val sandbox: String,
     @SerializedName("showProducts") val showProducts: Boolean,
     @SerializedName("showPersonalisation") val showPersonalisation: Boolean,
+    @SerializedName("showDecisioning") val showDecisioning: Boolean,
     @SerializedName("showGeofences") val showGeofences: Boolean,
     @SerializedName("showBeacons") val showBeacons: Boolean,
     @SerializedName("ldap") val ldap: String,
@@ -73,6 +79,7 @@ data class Config(
             sandbox = "",
             showProducts = true,
             showPersonalisation = true,
+            showDecisioning = false,
             showGeofences = true,
             showBeacons = true,
             ldap = "",
@@ -92,6 +99,10 @@ data class Customer(
 
 data class Target(
     @SerializedName("location") val location: String
+)
+
+data class Decisioning(
+    @SerializedName("surface") val surface: String
 )
 
 data class AppMap(

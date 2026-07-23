@@ -12,7 +12,6 @@
 package com.adobe.luma.tutorial.android.views
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -46,7 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
 import com.adobe.luma.tutorial.android.R
 import com.adobe.luma.tutorial.android.models.Product
 import com.adobe.luma.tutorial.android.models.MobileSDK
@@ -168,7 +168,6 @@ fun ProductsView(navController: NavController) {
 @Composable
 fun FeaturedProducts(products: List<Product>, navController: NavController) {
     for (product in products) {
-        val painter: Painter = rememberAsyncImagePainter(product.imageURL)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -182,10 +181,11 @@ fun FeaturedProducts(products: List<Product>, navController: NavController) {
                     )
                     navController.navigate(Routes.ContentView.route)
                 }) {
-            Image(
-                painter = painter,
-                contentDescription = null,
+            AsyncImage(
+                model = product.imageURL,
+                contentDescription = product.name,
                 alignment = Alignment.Center,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .clip(RoundedCornerShape(5.dp))
                     .weight(1f, true)
@@ -207,8 +207,6 @@ fun FeaturedProducts(products: List<Product>, navController: NavController) {
 
 @Composable
 fun ProductRow(product: Product, navController: NavController) {
-    val painter: Painter = rememberAsyncImagePainter(product.imageURL)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -223,11 +221,12 @@ fun ProductRow(product: Product, navController: NavController) {
                 navController.navigate(Routes.ContentView.route)
             }
     ) {
-        Image(
-            painter = painter,
-            contentDescription = null,
+        AsyncImage(
+            model = product.imageURL,
+            contentDescription = product.name,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .height(50.dp)
+                .size(50.dp)
                 .clip(RoundedCornerShape(5.dp))
         )
         Spacer(modifier = Modifier.width(8.dp))

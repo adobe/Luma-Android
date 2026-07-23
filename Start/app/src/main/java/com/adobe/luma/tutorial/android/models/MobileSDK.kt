@@ -26,8 +26,10 @@ import com.adobe.luma.tutorial.android.xdm.Application
 import com.adobe.luma.tutorial.android.xdm.TestPushPayload
 import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.ExperienceEvent
+import com.adobe.marketing.mobile.Messaging
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Places
+import com.adobe.marketing.mobile.messaging.Surface
 import com.adobe.marketing.mobile.UserProfile
 import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.AuthenticatedState
@@ -60,6 +62,7 @@ class MobileSDK : ViewModel() {
     var sandbox = mutableStateOf("")
     var showProducts = mutableStateOf(true)
     var showPersonalisation = mutableStateOf(true)
+    var showDecisioning = mutableStateOf(false)
     var showGeofences = mutableStateOf(true)
     var showBeacons = mutableStateOf(true)
     var testPushEventType = mutableStateOf("application.test")
@@ -70,6 +73,7 @@ class MobileSDK : ViewModel() {
     var productsSystemImage = mutableStateOf("cart")
     var currency = mutableStateOf("$")
     var targetLocation = mutableStateOf("")
+    var decisioningSurface = mutableStateOf("")
     var ldap = mutableStateOf("")
     var emailDomain = mutableStateOf("adobetest.com")
     var tms = mutableStateOf("")
@@ -91,6 +95,7 @@ class MobileSDK : ViewModel() {
             sandbox.value = general.config.sandbox
             showProducts.value = general.config.showProducts
             showPersonalisation.value = general.config.showPersonalisation
+            showDecisioning.value = general.config.showDecisioning
             showBeacons.value = general.config.showBeacons
             showGeofences.value = general.config.showGeofences
             brandName.value = general.customer.name
@@ -100,6 +105,7 @@ class MobileSDK : ViewModel() {
             currency.value = general.customer.currency
             testPushEventType.value = general.testPush.eventType
             targetLocation.value = general.target.location
+            decisioningSurface.value = general.decisioning.surface
             ldap.value = general.config.ldap
             emailDomain.value = general.config.emailDomain ?: "adobetest.com"
             tms.value = general.config.tms
@@ -115,12 +121,20 @@ class MobileSDK : ViewModel() {
 
     fun updateConsent(value: String) {
         // Update consent
-
+        val collectConsent = mapOf("collect" to mapOf("val" to value))
+        val currentConsents = mapOf("consents" to collectConsent)
+        Consent.update(currentConsents)
+        MobileCore.updateConfiguration(currentConsents)
     }
 
     fun getConsents() {
         // Get consents
-
+        Consent.getConsents { callback ->
+            if (callback != null) {
+                val jsonStr = JSONObject(callback).toString(4)
+                Log.i("MobileSDK", "Consent getConsents: $jsonStr")
+            }
+        }
     }
 
     fun logInfo(message: String) {
@@ -129,27 +143,74 @@ class MobileSDK : ViewModel() {
 
     fun sendAppInteractionEvent(actionName: String) {
         // Set up a data map, create an experience event and send the event.
-
+        val xdmData = mapOf(
+            "eventType" to "application.interaction",
+            tenant.value to mapOf(
+                "appInformation" to mapOf(
+                    "appInteraction" to mapOf(
+                        "name" to actionName,
+                        "appAction" to mapOf("value" to 1)
+                    )
+                )
+            )
+        )
+        val appInteractionEvent = ExperienceEvent.Builder().setXdmSchema(xdmData).build()
+        Edge.sendEvent(appInteractionEvent, null)
     }
 
     fun sendTrackScreenEvent(stateName: String) {
         // Set up a data map, create an experience event and send the event.
-
+        val xdmData = mapOf(
+            "eventType" to "application.scene",
+            tenant.value to mapOf(
+                "appInformation" to mapOf(
+                    "appStateDetails" to mapOf(
+                        "screenType" to "App",
+                        "screenName" to stateName,
+                        "screenView" to mapOf("value" to 1)
+                    )
+                )
+            )
+        )
+        val trackScreenEvent = ExperienceEvent.Builder().setXdmSchema(xdmData).build()
+        Edge.sendEvent(trackScreenEvent, null)
     }
 
     fun sendCommerceExperienceEvent(commerceEventType: String, product: Product) {
         // Set up a data map, create an experience event and send the event.
-
+        val xdmData = mapOf(
+            "eventType" to "commerce.$commerceEventType",
+            "commerce" to mapOf(commerceEventType to mapOf("value" to 1)),
+            "productListItems" to listOf(
+                mapOf(
+                    "name" to product.name,
+                    "priceTotal" to product.price,
+                    "SKU" to product.sku
+                )
+            )
+        )
+        val commerceExperienceEvent = ExperienceEvent.Builder().setXdmSchema(xdmData).build()
+        Edge.sendEvent(commerceExperienceEvent, null)
     }
 
     fun updateIdentities(emailAddress: String, crmId: String) {
         // Set up identity map, add identities to map and update identities
+        val identityMap = IdentityMap()
 
+        val emailIdentity = IdentityItem(emailAddress, AuthenticatedState.AUTHENTICATED, true)
+        val crmIdentity = IdentityItem(crmId, AuthenticatedState.AUTHENTICATED, true)
+        identityMap.addItem(emailIdentity, "Email")
+        identityMap.addItem(crmIdentity, "lumaCRMId")
+
+        Identity.updateIdentities(identityMap)
     }
 
     fun removeIdentities(emailAddress: String, crmId: String) {
         // Remove identities and reset email and CRM Id to their defaults
-
+        Identity.removeIdentity(IdentityItem(emailAddress), "Email")
+        Identity.removeIdentity(IdentityItem(crmId), "lumaCRMId")
+        currentEmailId.value = "testUser@gmail.com"
+        currentCRMId.value = "112ca06ed53d3db37e4cea49cc45b71e"
     }
 
 
@@ -169,16 +230,17 @@ class MobileSDK : ViewModel() {
 
     fun updateUserAttribute(attributeName: String, attributeValue: String) {
         // Create a profile map, add attributes to the map and update profile using the map
-
+        val profileMap = mapOf(attributeName to attributeValue)
+        UserProfile.updateUserAttributes(profileMap)
     }
 
     suspend fun sendTestPushEvent(applicationId: String, eventType: String) {
-
-        // Create paylod and send experience event
-
         // Create payload and send experience event
-
-
+        val testPushPayload = TestPushPayload(
+            Application(applicationId),
+            eventType
+        )
+        sendExperienceEvent(testPushPayload.asMap())
     }
 
     private suspend fun sendExperienceEvent(xdm: Map<String, Any>) {
@@ -197,17 +259,30 @@ class MobileSDK : ViewModel() {
     }
 
     fun sendTrackAction(action: String, data: Map<String, String>?) {
-
-        // Send trackAction event
-
         // Send trackAction Event
-
-
+        MobileCore.trackAction(action, data)
     }
 
     suspend fun updatePropositionsAT(ecid: String, location: String) {
         // set up the XDM dictionary, define decision scope and call update proposition API
-
+        withContext(Dispatchers.IO) {
+            val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
+            val identityMap = mapOf("identityMap" to ecidMap)
+            val xdmData = mapOf("xdm" to identityMap)
+            val decisionScope = DecisionScope(location)
+            Optimize.clearCachedPropositions()
+            Optimize.updatePropositions(listOf(decisionScope), xdmData, null, object :
+                    AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
+                    override fun fail(optimizeError: AEPOptimizeError?) {
+                        val responseError = optimizeError
+                        Log.i("MobileSDK", "updatePropositionsAT error: ${responseError}")
+                    }
+                    override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
+                        val responseMap = propositionsMap
+                        Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
+                    }
+                })
+        }
     }
 
     suspend fun updatePropositionsOD(
@@ -217,15 +292,44 @@ class MobileSDK : ViewModel() {
         itemCount: Int
     ) {
         // set up the XDM dictionary, define decision scope and call update proposition API
+        withContext(Dispatchers.IO) {
+            val ecidMap = mapOf("ECID" to mapOf("id" to ecid, "primary" to true))
+            val identityMap = mapOf("identityMap" to ecidMap)
+            val xdmData = mapOf("xdm" to identityMap)
+            val decisionScope = DecisionScope(activityId, placementId, itemCount)
+            Optimize.clearCachedPropositions()
+            Optimize.updatePropositions(listOf(decisionScope), xdmData, null, object :
+                AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
+                override fun fail(optimizeError: AEPOptimizeError?) {
+                    val responseError = optimizeError
+                    Log.i("MobileSDK", "updatePropositionsOD error: ${responseError}")
+                }
+                override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
+                    val responseMap = propositionsMap
+                    Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
+                }
+            })
+        }
+    }
 
+    suspend fun updatePropositionsForSurfaces(surfaces: List<Surface>) {
+        // get the propositions for the surfaces configured
+        withContext(Dispatchers.IO) {
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Updating ${surfaces.size} surface(s)")
+            surfaces.forEach { surface ->
+                Log.i("MobileSDK", "updatePropositionsForSurfaces: Surface URI: ${surface.uri}")
+            }
+
+            Messaging.updatePropositionsForSurfaces(surfaces)
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Update triggered successfully")
+        }
     }
 
     suspend fun processGeofence(geofence: Geofence?, transitionType: Int) {
         withContext(Dispatchers.IO) {
             geofence?.let {
                 // Process geolocation event
-
-
+                Places.processGeofence(geofence, transitionType)
             }
         }
     }
