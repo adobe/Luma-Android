@@ -122,7 +122,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
     // add Firebase Messaging
     implementation("com.google.firebase:firebase-messaging")
 

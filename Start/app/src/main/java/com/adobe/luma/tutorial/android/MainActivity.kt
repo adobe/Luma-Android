@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.adobe.luma.tutorial.android.views.AppNavigation
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : AppCompatActivity() {
     private val LOG_TAG = "MainActivity"
@@ -113,8 +114,18 @@ class MainActivity : AppCompatActivity() {
             AppNavigation(navController = rememberNavController())
         }
 
+
         // register push notification
         askNotificationPermission()
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM Token", token ?: "Token is null")
+            } else {
+                Log.w("FCM Token", "Fetching FCM registration token failed", task.exception)
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

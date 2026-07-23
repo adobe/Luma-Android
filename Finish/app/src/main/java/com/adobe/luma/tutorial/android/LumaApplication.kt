@@ -108,7 +108,7 @@ class LumaApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Luma Channel"
             val descriptionText = "Luma Notification Channel"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel("LUMA_CHANNEL_ID", name, importance).apply {
                 description = descriptionText
             }

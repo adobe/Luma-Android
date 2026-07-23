@@ -36,7 +36,7 @@ import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.Identity
 import com.adobe.marketing.mobile.optimize.Optimize
 import com.google.firebase.messaging.FirebaseMessaging
-import androidx.core.net.toUri
+import com.google.firebase.FirebaseApp
 
 
 class LumaApplication : Application() {
@@ -44,23 +44,14 @@ class LumaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
 
         MobileCore.setLogLevel(LoggingMode.ERROR)
         MobileCore.setApplication(this)
 
         // Define extensions
-        val extensions = listOf(
-            Identity.EXTENSION,
-            Lifecycle.EXTENSION,
-            Signal.EXTENSION,
-            Edge.EXTENSION,
-            Consent.EXTENSION,
-            UserProfile.EXTENSION,
-            Places.EXTENSION,
-            Messaging.EXTENSION,
-            Optimize.EXTENSION,
-            Assurance.EXTENSION
-        )
+
+
 
         // Register extensions
         MobileCore.registerExtensions(extensions) {
@@ -68,12 +59,8 @@ class LumaApplication : Application() {
             Log.i("Luma", "Using mobile config: $environmentFileId")
             MobileCore.configureWithAppID(environmentFileId)
 
-            // set this to true when testing on your device, default is false.
-            //MobileCore.updateConfiguration(mapOf("messaging.useSandbox" to true))
+        // Register extensions
 
-            // assume unknown, adapt to your needs.
-            MobileCore.setPrivacyStatus(MobilePrivacyStatus.UNKNOWN)
-        }
 
         // only start lifecycle if the application is not in the background
         // see LumaActivityLifecycleCallbacks.onActivityResumed
@@ -92,8 +79,12 @@ class LumaApplication : Application() {
                 // Get new FCM registration token
                 val token = task.result
                 Log.i("Luma", "Android Firebase token :: $token")
-                // register push notification
+
+                // Send push token to Mobile SDK
+
                 MobileCore.setPushIdentifier(token)
+
+
                 // Store the push token
                 MobileSDK.shared.deviceToken.value = token
             }
@@ -116,13 +107,7 @@ class LumaApplication : Application() {
 
     fun handleDeeplink(deeplink: String?) {
         // Called when the app in background is opened with a deep link.
-        if (deeplink.isNullOrEmpty()) {
-            Log.w("Luma", "Deeplink is null or empty")
-            return
-        }
 
-        Log.i("Luma", "Handling deeplink: $deeplink")
-        Assurance.startSession(deeplink)
     }
 
     fun scheduleNotification() {
@@ -150,13 +135,13 @@ class LumaApplication : Application() {
         override fun onActivityResumed(activity: Activity) {
             Log.i("Luma", "onActivityResumed: " + activity.localClassName)
             // When in foreground start lifecycle data collection
-            MobileCore.lifecycleStart(null)
+
         }
 
         override fun onActivityPaused(activity: Activity) {
             Log.i("Luma", "onActivityPaused: " + activity.localClassName)
             // When in background pause lifecycle data collection
-            MobileCore.lifecyclePause()
+
         }
 
         override fun onActivityStopped(activity: Activity) {

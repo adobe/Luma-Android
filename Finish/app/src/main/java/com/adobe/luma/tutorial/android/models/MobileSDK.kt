@@ -237,6 +237,7 @@ class MobileSDK : ViewModel() {
     suspend fun sendTestPushEvent(applicationId: String, eventType: String) {
         // Create payload and send experience event
         val testPushPayload = TestPushPayload(
+
             Application(applicationId),
             eventType
         )
