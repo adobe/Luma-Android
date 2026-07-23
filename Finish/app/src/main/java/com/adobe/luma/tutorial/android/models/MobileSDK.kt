@@ -313,12 +313,13 @@ class MobileSDK : ViewModel() {
     }
 
     suspend fun updatePropositionsForSurfaces(surfaces: List<Surface>) {
-        // Ask the Messaging extension to fetch propositions for the given decisioning surfaces
+        // get the propositions for the surfaces configured
         withContext(Dispatchers.IO) {
             Log.i("MobileSDK", "updatePropositionsForSurfaces: Updating ${surfaces.size} surface(s)")
             surfaces.forEach { surface ->
                 Log.i("MobileSDK", "updatePropositionsForSurfaces: Surface URI: ${surface.uri}")
             }
+
             Messaging.updatePropositionsForSurfaces(surfaces)
             Log.i("MobileSDK", "updatePropositionsForSurfaces: Update triggered successfully")
         }

@@ -84,7 +84,7 @@ fun EdgeDecisioningOffersView(surface: Surface, surfaceName: String) {
     }
 
     Text(
-        text = surfaceName,
+        text = "Surface " + surfaceName,
         style = MaterialTheme.typography.labelSmall,
         fontSize = 12.sp,
         modifier = Modifier.padding(horizontal = 30.dp)
@@ -197,7 +197,7 @@ fun EdgeDecisioningOffersView(surface: Surface, surfaceName: String) {
                     SURFACE PARAMETERS
                     Surface URI: ${surface.uri}
 
-                    RESPONSE
+                    PROPOSITION RESPONSE
                     $propositionInfo
                     """.trimIndent(),
                     fontSize = 10.sp,

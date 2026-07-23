@@ -1,32 +1,35 @@
 /*
-Copyright 2025 Adobe. All rights reserved.
-This file is licensed to you under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License. You may obtain a copy
-of the License at http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software distributed under
-the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
-OF ANY KIND, either express or implied. See the License for the specific language
-governing permissions and limitations under the License.
+  Copyright 2025 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
 */
 
 package com.adobe.luma.tutorial.android.models
 
 import android.content.Context
 import android.location.Location
+import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.adobe.luma.tutorial.android.utils.Network
+import com.adobe.luma.tutorial.android.views.LocationManager
 import com.adobe.luma.tutorial.android.views.TrackingStatus
 import com.adobe.luma.tutorial.android.xdm.Application
 import com.adobe.luma.tutorial.android.xdm.TestPushPayload
 import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.ExperienceEvent
+import com.adobe.marketing.mobile.Messaging
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Places
+import com.adobe.marketing.mobile.messaging.Surface
 import com.adobe.marketing.mobile.UserProfile
 import com.adobe.marketing.mobile.edge.consent.Consent
 import com.adobe.marketing.mobile.edge.identity.AuthenticatedState
@@ -40,12 +43,14 @@ import com.adobe.marketing.mobile.optimize.Optimize
 import com.adobe.marketing.mobile.optimize.OptimizeProposition
 import com.adobe.marketing.mobile.places.PlacesPOI
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
+
 
 class MobileSDK : ViewModel() {
 
@@ -57,6 +62,7 @@ class MobileSDK : ViewModel() {
     var sandbox = mutableStateOf("")
     var showProducts = mutableStateOf(true)
     var showPersonalisation = mutableStateOf(true)
+    var showDecisioning = mutableStateOf(false)
     var showGeofences = mutableStateOf(true)
     var showBeacons = mutableStateOf(true)
     var testPushEventType = mutableStateOf("application.test")
@@ -67,6 +73,7 @@ class MobileSDK : ViewModel() {
     var productsSystemImage = mutableStateOf("cart")
     var currency = mutableStateOf("$")
     var targetLocation = mutableStateOf("")
+    var decisioningSurface = mutableStateOf("")
     var ldap = mutableStateOf("")
     var emailDomain = mutableStateOf("adobetest.com")
     var tms = mutableStateOf("")
@@ -88,6 +95,7 @@ class MobileSDK : ViewModel() {
             sandbox.value = general.config.sandbox
             showProducts.value = general.config.showProducts
             showPersonalisation.value = general.config.showPersonalisation
+            showDecisioning.value = general.config.showDecisioning
             showBeacons.value = general.config.showBeacons
             showGeofences.value = general.config.showGeofences
             brandName.value = general.customer.name
@@ -97,6 +105,7 @@ class MobileSDK : ViewModel() {
             currency.value = general.customer.currency
             testPushEventType.value = general.testPush.eventType
             targetLocation.value = general.target.location
+            decisioningSurface.value = general.decisioning.surface
             ldap.value = general.config.ldap
             emailDomain.value = general.config.emailDomain ?: "adobetest.com"
             tms.value = general.config.tms
@@ -226,6 +235,7 @@ class MobileSDK : ViewModel() {
     }
 
     suspend fun sendTestPushEvent(applicationId: String, eventType: String) {
+        // Create payload and send experience event
         val testPushPayload = TestPushPayload(
             Application(applicationId),
             eventType
@@ -249,7 +259,7 @@ class MobileSDK : ViewModel() {
     }
 
     fun sendTrackAction(action: String, data: Map<String, String>?) {
-        // Send trackAction event
+        // Send trackAction Event
         MobileCore.trackAction(action, data)
     }
 
@@ -262,16 +272,16 @@ class MobileSDK : ViewModel() {
             val decisionScope = DecisionScope(location)
             Optimize.clearCachedPropositions()
             Optimize.updatePropositions(listOf(decisionScope), xdmData, null, object :
-                AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
-                override fun fail(optimizeError: AEPOptimizeError?) {
-                    val responseError = optimizeError
-                    Log.i("MobileSDK", "updatePropositionsAT error: ${responseError}")
-                }
-                override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
-                    val responseMap = propositionsMap
-                    Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
-                }
-            })
+                    AdobeCallbackWithOptimizeError<MutableMap<DecisionScope?, OptimizeProposition?>?> {
+                    override fun fail(optimizeError: AEPOptimizeError?) {
+                        val responseError = optimizeError
+                        Log.i("MobileSDK", "updatePropositionsAT error: ${responseError}")
+                    }
+                    override fun call(propositionsMap: MutableMap<DecisionScope?, OptimizeProposition?>?) {
+                        val responseMap = propositionsMap
+                        Log.i("MobileSDK", "updatePropositionsOD call: ${responseMap}")
+                    }
+                })
         }
     }
 
@@ -302,12 +312,24 @@ class MobileSDK : ViewModel() {
         }
     }
 
+    suspend fun updatePropositionsForSurfaces(surfaces: List<Surface>) {
+        // get the propositions for the surfaces configured
+        withContext(Dispatchers.IO) {
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Updating ${surfaces.size} surface(s)")
+            surfaces.forEach { surface ->
+                Log.i("MobileSDK", "updatePropositionsForSurfaces: Surface URI: ${surface.uri}")
+            }
+
+            Messaging.updatePropositionsForSurfaces(surfaces)
+            Log.i("MobileSDK", "updatePropositionsForSurfaces: Update triggered successfully")
+        }
+    }
+
     suspend fun processGeofence(geofence: Geofence?, transitionType: Int) {
         withContext(Dispatchers.IO) {
             geofence?.let {
                 // Process geolocation event
                 Places.processGeofence(geofence, transitionType)
-
             }
         }
     }

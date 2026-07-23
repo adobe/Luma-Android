@@ -62,7 +62,7 @@ fun EdgeDecisioningView(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Decisioning", fontWeight = FontWeight.Bold, fontSize = 40.sp) }
+                title = { Text("Personalisation", fontWeight = FontWeight.Bold, fontSize = 40.sp) }
             )
         },
         content = { paddingValues ->
